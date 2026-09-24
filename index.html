@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#000000">
+<title>Feel The Beat: music for the deaf</title>
+<meta name="description" content="Feel The Beat turns music into vibration and light so deaf and hard-of-hearing people can feel every beat.">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#000; --surface:#0f0f10; --raised:#1a1a1c; --line:#232326;
+    --text:#fff; --muted:#8e8e93; --faint:#48484a; --live:#30d158;
+    --font:-apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,"Segoe UI",Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);-webkit-font-smoothing:antialiased;
+            overflow:hidden;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+  button{font-family:var(--font);cursor:pointer}
+  .app{height:100%;max-width:460px;margin:0 auto;display:flex;flex-direction:column;
+       padding:calc(env(safe-area-inset-top) + 18px) 20px calc(env(safe-area-inset-bottom) + 20px)}
+
+  header{display:flex;justify-content:space-between;align-items:center}
+  .logo{font-weight:600;font-size:17px;letter-spacing:-.01em}
+  .status{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:7px}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--faint);transition:background .3s}
+  .live .dot{background:var(--live)}
+
+  .modes{margin-top:20px;display:grid;grid-template-columns:repeat(3,1fr);background:var(--surface);border-radius:12px;padding:3px}
+  .modes button{background:none;border:0;color:var(--muted);font-weight:500;font-size:14px;padding:9px 0;border-radius:9px;transition:all .2s}
+  .modes button.on{background:var(--raised);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.5)}
+
+  .stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:0;padding:18px 0}
+  .orb-wrap{position:relative;width:min(64vw,34vh,270px);aspect-ratio:1;flex-shrink:0}
+  .track{position:absolute;inset:0;border-radius:50%;border:1px solid var(--line)}
+  .ring{position:absolute;inset:0;border-radius:50%;border:1px solid rgba(255,255,255,.7);opacity:0}
+  .ring.go{animation:ring .8s cubic-bezier(.2,.7,.3,1)}
+  @keyframes ring{0%{transform:scale(.86);opacity:.9}100%{transform:scale(1.28);opacity:0}}
+  .orb{position:absolute;inset:14%;border-radius:50%;background:var(--surface);border:1px solid var(--line);
+       display:flex;flex-direction:column;align-items:center;justify-content:center;
+       transition:transform .25s cubic-bezier(.2,.7,.3,1),background .3s,color .3s}
+  .orb.hit{transform:scale(1.06);background:#fff;color:#000;transition:transform .05s,background .05s,color .05s}
+  .bpm{font-size:60px;font-weight:600;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums}
+  .bpm-l{font-size:11px;font-weight:500;color:var(--muted);letter-spacing:.18em;margin-top:8px}
+  .orb.hit .bpm-l{color:#555}
+  .hint{margin-top:clamp(12px,3vh,26px);color:var(--muted);font-size:15px;text-align:center;min-height:20px}
+
+  .panel{background:var(--surface);border-radius:16px;padding:6px 16px}
+  .row{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:15px;padding:11px 0;border-bottom:1px solid var(--line)}
+  .row:last-child{border-bottom:0}
+  .row > label:first-child{color:var(--text);min-width:88px}
+  .row b{min-width:32px;text-align:right;font-weight:500;color:var(--muted);font-variant-numeric:tabular-nums}
+  input[type=range]{flex:1;-webkit-appearance:none;appearance:none;height:4px;border-radius:2px;background:var(--raised);outline:none}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;background:#fff;border:0;box-shadow:0 1px 4px rgba(0,0,0,.6)}
+  input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:#fff;border:0}
+  .seg{display:flex;background:var(--raised);border-radius:9px;padding:2px}
+  .seg button{background:none;border:0;color:var(--muted);font-weight:500;font-size:13px;padding:6px 12px;border-radius:7px;transition:all .2s}
+  .seg button.on{color:#000;background:#fff}
+  .file{flex:1;min-width:0;background:var(--raised);color:var(--muted);font-weight:500;font-size:13px;padding:9px 10px;border-radius:9px;
+        text-align:center;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+  .demo-btn{background:var(--raised);border:0;color:var(--text);font-weight:500;font-size:13px;padding:9px 12px;border-radius:9px;white-space:nowrap}
+  .demo-btn.on{color:#000;background:#fff}
+  .hide{display:none!important}
+
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.8);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+         display:flex;align-items:center;justify-content:center;padding:20px;z-index:30}
+  .modal-card{max-width:360px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:22px}
+  .modal-card h2{font-size:17px;font-weight:600;margin-bottom:10px}
+  .modal-card p{color:#c7c7cc;font-size:14px;line-height:1.5}
+  .modal-card .btns{display:flex;gap:10px;margin-top:20px}
+  .modal-card button{flex:1;border:0;border-radius:11px;padding:13px;font-weight:600;font-size:14px}
+  .modal-card .no{background:var(--raised);color:var(--text)} .modal-card .yes{background:#fff;color:#000}
+
+  .go-btn{margin-top:14px;width:100%;border:0;border-radius:14px;padding:17px;font-weight:600;font-size:17px;color:#000;background:#fff;transition:transform .1s,background .2s}
+  .go-btn:active{transform:scale(.98)}
+  .go-btn.stop{background:var(--raised);color:var(--text)}
+  .flash{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;transition:opacity .18s ease-out;z-index:9}
+  .flash.on{opacity:.85;transition:none}
+  .toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 14px);transform:translate(-50%,-160%);width:min(92vw,420px);
+         background:var(--raised);border:1px solid var(--line);color:#fff;font-size:14px;line-height:1.45;padding:12px 14px;border-radius:13px;z-index:20;
+         box-shadow:0 8px 30px rgba(0,0,0,.6);transition:transform .3s cubic-bezier(.2,.7,.3,1)}
+  .toast.show{transform:translate(-50%,0)}
+  @media (max-height:640px){ .row{padding:8px 0} .go-btn{padding:14px;margin-top:10px} .modes{margin-top:12px} .bpm{font-size:46px} .orb-wrap{width:min(64vw,30vh,270px)} .stage{padding:12px 0} }
+  #hap{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px}
+</style>
+</head>
+<body>
+<div class="flash" id="flash"></div>
+<div class="toast" id="toast" role="alert"></div>
+<div class="modal hide" id="warn" role="dialog" aria-modal="true" aria-labelledby="warnT">
+  <div class="modal-card">
+    <h2 id="warnT">Photosensitivity warning</h2>
+    <p>Screen Flash makes the whole screen flash white on every beat. Flashing lights can trigger seizures in people with photosensitive epilepsy. If you or anyone watching has epilepsy or feels discomfort, dizziness or blurred vision, stop right away.</p>
+    <div class="btns"><button class="no" id="warnNo">Cancel</button><button class="yes" id="warnYes">I understand, turn on</button></div>
+  </div>
+</div>
+<!-- iOS 18+ haptic trick: toggling a native switch triggers a system tap -->
+<input type="checkbox" switch id="hapSwitch" aria-hidden="true" tabindex="-1" style="position:absolute;opacity:0;pointer-events:none"><label for="hapSwitch" id="hap"></label>
+
+<div class="app">
+  <header>
+    <div class="logo">Feel The Beat</div>
+    <div class="status" id="status"><i class="dot"></i><span id="statusTxt">Ready</span></div>
+  </header>
+
+  <nav class="modes" id="modes">
+    <button data-m="mic" class="on">Listen</button>
+    <button data-m="song">Song</button>
+    <button data-m="metro">Metronome</button>
+  </nav>
+
+  <section class="stage">
+    <div class="orb-wrap">
+      <div class="track"></div><div class="ring" id="ring"></div>
+      <div class="orb" id="orb"><div class="bpm" id="bpm">--</div><div class="bpm-l">BPM</div></div>
+    </div>
+    <p class="hint" id="hint">Feel music around you through your phone</p>
+  </section>
+
+  <section class="panel">
+    <div class="row" id="rowFile">
+      <label>Song</label>
+      <label class="file" for="fileIn" id="fileName">Choose a song…</label>
+      <button class="demo-btn" id="demoBtn">Demo beat</button>
+      <input type="file" id="fileIn" accept="audio/*" class="hide">
+    </div>
+    <div class="row" id="rowSens">
+      <label>Sensitivity</label><input type="range" id="sens" min="1" max="10" value="6"><b id="sensV">6</b>
+    </div>
+    <div class="row hide" id="rowTempo">
+      <label>Tempo</label><input type="range" id="tempo" min="40" max="220" value="100"><b id="tempoV">100</b>
+    </div>
+    <div class="row">
+      <label>Buzz</label>
+      <div class="seg" id="buzz"><button data-v="40">Light</button><button data-v="90" class="on">Medium</button><button data-v="160">Strong</button></div>
+    </div>
+    <div class="row">
+      <label>Flash</label>
+      <div class="seg" id="flashSeg"><button data-v="0">Off</button><button data-v="1" class="on">Orb</button><button data-v="2">Screen</button></div>
+    </div>
+  </section>
+
+  <button class="go-btn" id="go">Start</button>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const canVibrate = 'vibrate' in navigator;
+const state = { mode:'mic', running:false, buzz:90, flash:1, sens:6, tempo:100 };
+
+let ctx, analyser, bassFilter, micStream, micSrc, songSrc, audioEl, raf, metroTimer, wakeLock;
+let history = [], lastBeat = 0, lastFlash = 0, intervals = [], beatCount = 0;
+
+// ---------- UI wiring ----------
+function segment(id, key){
+  $(id).addEventListener('click', e=>{
+    const b = e.target.closest('button'); if(!b) return;
+    [...$(id).children].forEach(x=>x.classList.toggle('on', x===b));
+    state[key] = +b.dataset.v;
+    if(key==='buzz') pulse(true); // preview
+  });
+}
+segment('buzz','buzz');
+let flashOK = false;
+$('flashSeg').addEventListener('click', e=>{
+  const b = e.target.closest('button'); if(!b) return;
+  const pick = () => { [...$('flashSeg').children].forEach(x=>x.classList.toggle('on', x===b)); state.flash = +b.dataset.v; };
+  if(b.dataset.v==='2' && !flashOK){
+    $('warn').classList.remove('hide');
+    $('warnYes').onclick = () => { flashOK = true; $('warn').classList.add('hide'); pick(); };
+    $('warnNo').onclick  = () => $('warn').classList.add('hide');
+  } else pick();
+});
+
+$('sens').oninput = e => { state.sens = +e.target.value; $('sensV').textContent = state.sens; };
+$('tempo').oninput = e => { state.tempo = +e.target.value; $('tempoV').textContent = state.tempo; if(state.mode==='metro') $('bpm').textContent = state.tempo; };
+
+const hints = {
+  mic:'Feel music around you through your phone',
+  song:'Pick a song, or play the demo beat',
+  metro:'A steady beat to dance, play or practice to'
+};
+$('modes').addEventListener('click', e=>{
+  const b = e.target.closest('button'); if(!b || b.dataset.m===state.mode) return;
+  stop();
+  state.mode = b.dataset.m;
+  [...$('modes').children].forEach(x=>x.classList.toggle('on', x===b));
+  $('rowFile').classList.toggle('hide', state.mode!=='song');
+  $('rowSens').classList.toggle('hide', state.mode==='metro');
+  $('rowTempo').classList.toggle('hide', state.mode!=='metro');
+  $('bpm').textContent = state.mode==='metro' ? state.tempo : '--';
+  $('hint').textContent = hints[state.mode];
+});
+$('rowFile').classList.add('hide');
+
+$('fileIn').onchange = e => {
+  const f = e.target.files[0]; if(!f) return;
+  stop();
+  $('fileName').textContent = f.name;
+  if(!audioEl){ audioEl = new Audio(); audioEl.playsInline = true; audioEl.onended = stop; }
+  if(audioEl.src) URL.revokeObjectURL(audioEl.src);
+  audioEl.src = URL.createObjectURL(f);
+};
+
+let useDemo = false, demoGain, demoTimer;
+$('demoBtn').onclick = () => {
+  stop(); useDemo = !useDemo;
+  $('demoBtn').classList.toggle('on', useDemo);
+  $('fileName').textContent = useDemo ? 'Demo · 120 BPM' : (audioEl?.src ? 'Song loaded' : 'Choose a song…');
+};
+$('fileIn').addEventListener('change', () => { useDemo = false; $('demoBtn').classList.remove('on'); });
+
+// Built-in drum loop (synthesized, no file needed): kick every beat, snare on 2 & 4, hi-hats on 8ths
+function startDemo(){
+  demoGain = ctx.createGain(); demoGain.gain.value = 0.9;
+  demoGain.connect(ctx.destination); demoGain.connect(bassFilter);
+  const noise = ctx.createBuffer(1, ctx.sampleRate*0.3, ctx.sampleRate);
+  const nd = noise.getChannelData(0); for(let i=0;i<nd.length;i++) nd[i] = Math.random()*2-1;
+  const spb = 60/120/2; let step = 0, t = ctx.currentTime + 0.1;
+  const hit = (time, f0, f1, dur, vol, type) => {
+    const o = ctx.createOscillator(), g = ctx.createGain(); o.type = type||'sine';
+    o.frequency.setValueAtTime(f0, time); o.frequency.exponentialRampToValueAtTime(f1, time+dur*0.4);
+    g.gain.setValueAtTime(vol, time); g.gain.exponentialRampToValueAtTime(0.001, time+dur);
+    o.connect(g).connect(demoGain); o.start(time); o.stop(time+dur);
+  };
+  const hiss = (time, hp, dur, vol) => {
+    const n = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+    n.buffer = noise; f.type='highpass'; f.frequency.value = hp;
+    g.gain.setValueAtTime(vol, time); g.gain.exponentialRampToValueAtTime(0.001, time+dur);
+    n.connect(f).connect(g).connect(demoGain); n.start(time); n.stop(time+dur);
+  };
+  const bassline = [55,55,65.4,49];
+  const sched = () => {
+    while(t < ctx.currentTime + 0.15){
+      const beat = step % 8;
+      if(beat % 2 === 0) hit(t, 160, 45, 0.45, 1);                       // kick
+      if(beat === 2 || beat === 6) hiss(t, 1500, 0.18, 0.5);            // snare
+      hiss(t, 8000, 0.05, beat % 2 ? 0.25 : 0.15);                      // hi-hat
+      if(beat % 2 === 1) hit(t, bassline[(step>>3)%4]*2, bassline[(step>>3)%4]*2, 0.25, 0.18, 'triangle'); // bass
+      t += spb; step++;
+    }
+    demoTimer = setTimeout(sched, 25);
+  };
+  sched();
+}
+
+$('go').onclick = () => state.running ? stop() : start();
+
+// ---------- Beat output ----------
+function pulse(preview, accent){
+  const ms = accent ? state.buzz * 1.8 : state.buzz;
+  if(canVibrate){ try{ navigator.vibrate(ms); }catch(e){} }
+  else { try{ $('hap').click(); if(state.buzz>=90) setTimeout(()=>$('hap').click(), 60); if(state.buzz>=160) setTimeout(()=>$('hap').click(), 120);}catch(e){} }
+  if(preview) return flashOrb();
+  flashOrb();
+  if(state.flash===2 && performance.now()-lastFlash > 340){ lastFlash = performance.now(); $('flash').classList.add('on'); setTimeout(()=>$('flash').classList.remove('on'), 60); }
+}
+function flashOrb(){
+  if(state.flash===0) return;
+  const o = $('orb'), r = $('ring');
+  o.classList.add('hit'); setTimeout(()=>o.classList.remove('hit'), 110);
+  r.classList.remove('go'); void r.offsetWidth; r.classList.add('go');
+}
+
+function onBeat(now){
+  if(lastBeat){
+    const iv = now - lastBeat;
+    if(iv < 2000){ intervals.push(iv); if(intervals.length>12) intervals.shift(); }
+    if(intervals.length>=3){
+      const s = [...intervals].sort((a,b)=>a-b), med = s[s.length>>1];
+      let bpm = 60000/med; while(bpm>200) bpm/=2; while(bpm<60) bpm*=2;
+      $('bpm').textContent = Math.round(bpm);
+    }
+  }
+  lastBeat = now;
+  pulse(false);
+}
+
+// ---------- Audio analysis (bass-focused beat detection) ----------
+function ensureCtx(){
+  if(!ctx){
+    ctx = new (window.AudioContext||window.webkitAudioContext)();
+    // Bass-only path: kick drums & bass live below ~150 Hz
+    bassFilter = ctx.createBiquadFilter();
+    bassFilter.type = 'lowpass';
+    bassFilter.frequency.value = 150;
+    analyser = ctx.createAnalyser();
+    analyser.fftSize = 1024;
+    bassFilter.connect(analyser);
+  }
+  if(ctx.state==='suspended') ctx.resume();
+}
+
+function analyse(){
+  const buf = new Float32Array(analyser.fftSize);
+  const loop = () => {
+    analyser.getFloatTimeDomainData(buf);
+    let e = 0; for(let i=0;i<buf.length;i++) e += buf[i]*buf[i];
+    e /= buf.length;
+    const now = performance.now();
+    if(history.length >= 20){
+      let mu = 0; for(const h of history) mu += h; mu /= history.length;
+      let v = 0;  for(const h of history) v += (h-mu)*(h-mu);
+      const sd = Math.sqrt(v/history.length);
+      const k = 2.0 - state.sens*0.15;            // sens 1 → strict, sens 10 → catches everything
+      if(e > mu + k*sd && e > history[history.length-1] && e > 1e-6 && now-lastBeat > 280) onBeat(now);
+    }
+    history.push(e); if(history.length > 60) history.shift();   // ~1 s of memory
+    raf = requestAnimationFrame(loop);
+  };
+  loop();
+}
+
+// ---------- Modes ----------
+async function start(){
+  try{
+    if(state.mode==='metro'){ startMetro(); }
+    else {
+      ensureCtx();
+      if(state.mode==='mic'){
+        if(!navigator.mediaDevices?.getUserMedia) throw Object.assign(new Error('Microphone needs a secure (https) page'),{name:'NoMic'});
+        micStream = await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
+        micSrc = ctx.createMediaStreamSource(micStream);
+        micSrc.connect(bassFilter);             // not to speakers: avoids feedback
+      } else {
+        if(useDemo){ startDemo(); analyse(); state.running = true; setRunning(true); return; }
+        if(!audioEl || !audioEl.src){ toast('Choose a song or tap "Demo beat"'); return; }
+        if(!songSrc){ songSrc = ctx.createMediaElementSource(audioEl); songSrc.connect(bassFilter); songSrc.connect(ctx.destination); }
+        await audioEl.play();
+      }
+      analyse();
+    }
+    state.running = true;
+    setRunning(true);
+    try{ wakeLock = await navigator.wakeLock?.request('screen'); }catch(e){}
+  }catch(err){
+    const framed = window.self !== window.top;
+    if(err.name==='NotAllowedError' || err.name==='SecurityError')
+      toast(framed ? 'This preview window blocks the microphone. Open the app in its own tab (or try Song / Metronome here).'
+                   : 'Microphone is blocked. Allow mic access for this site in your browser settings, then tap Start again.');
+    else toast('Could not start: ' + err.message);
+  }
+}
+
+function startMetro(){
+  let next = performance.now(); beatCount = 0;
+  $('bpm').textContent = state.tempo;
+  const tick = () => {
+    pulse(false, beatCount % 4 === 0);   // stronger buzz on the downbeat
+    beatCount++;
+    next += 60000/state.tempo;
+    metroTimer = setTimeout(tick, Math.max(0, next - performance.now()));
+  };
+  tick();
+}
+
+function stop(){
+  cancelAnimationFrame(raf); clearTimeout(metroTimer); clearTimeout(demoTimer);
+  if(demoGain){ demoGain.disconnect(); demoGain = null; }
+  if(micStream){ micStream.getTracks().forEach(t=>t.stop()); micStream = null; }
+  if(micSrc){ micSrc.disconnect(); micSrc = null; }
+  if(audioEl && !audioEl.paused) audioEl.pause();
+  if(canVibrate) navigator.vibrate(0);
+  try{ wakeLock?.release(); }catch(e){} wakeLock = null;
+  history = []; intervals = []; lastBeat = 0;
+  state.running = false; setRunning(false);
+}
+
+let toastT;
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),5000); }
+function setRunning(on){
+  $('go').textContent = on ? 'Stop' : 'Start';
+  $('go').classList.toggle('stop', on);
+  $('status').classList.toggle('live', on);
+  $('statusTxt').textContent = on ? 'Live' : 'Ready';
+  if(on) $('hint').textContent = canVibrate ? 'Feel the buzz on every beat' : 'Taps + flashes on every beat';
+  else $('hint').textContent = hints[state.mode];
+}
+
+document.addEventListener('visibilitychange', async ()=>{
+  if(document.visibilityState==='visible' && state.running){ try{ wakeLock = await navigator.wakeLock?.request('screen'); }catch(e){} }
+});
+</script>
+</body>
+</html>
