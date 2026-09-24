@@ -9,12 +9,15 @@
 <meta name="theme-color" content="#000000">
 <title>Feel The Beat: music for the deaf</title>
 <meta name="description" content="Feel The Beat turns music into vibration and light so deaf and hard-of-hearing people can feel every beat.">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-title" content="Feel The Beat">
 <style>
   :root{
     --bg:#000; --surface:#0f0f10; --raised:#1a1a1c; --line:#232326;
     --text:#fff; --muted:#8e8e93; --faint:#48484a; --live:#30d158;
-    --font:-apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,"Segoe UI",Roboto,sans-serif;
+    --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
   html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);-webkit-font-smoothing:antialiased;
@@ -24,7 +27,8 @@
        padding:calc(env(safe-area-inset-top) + 18px) 20px calc(env(safe-area-inset-bottom) + 20px)}
 
   header{display:flex;justify-content:space-between;align-items:center}
-  .logo{font-weight:600;font-size:17px;letter-spacing:-.01em}
+  .logo{font-weight:600;font-size:17px;letter-spacing:-.01em;display:flex;align-items:center;gap:8px}
+  .mk{width:22px;height:22px}
   .status{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:7px}
   .dot{width:7px;height:7px;border-radius:50%;background:var(--faint);transition:background .3s}
   .live .dot{background:var(--live)}
@@ -102,7 +106,7 @@
 
 <div class="app">
   <header>
-    <div class="logo">Feel The Beat</div>
+    <div class="logo"><svg class="mk" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="12.5" fill="#fff"/><g fill="none" stroke-width="7" stroke-linecap="round"><path d="M69.32 32.60A26 26 0 0 1 69.32 67.40M30.68 67.40A26 26 0 0 1 30.68 32.60" stroke="#fff"/><path d="M79.73 23.24A40 40 0 0 1 79.73 76.76M20.27 76.76A40 40 0 0 1 20.27 23.24" stroke="#fff" stroke-opacity=".5"/></g></svg>Feel The Beat</div>
     <div class="status" id="status"><i class="dot"></i><span id="statusTxt">Ready</span></div>
   </header>
 
@@ -115,13 +119,13 @@
   <section class="stage">
     <div class="orb-wrap">
       <div class="track"></div><div class="ring" id="ring"></div>
-      <div class="orb" id="orb"><div class="bpm" id="bpm">--</div><div class="bpm-l">BPM</div></div>
+      <div class="orb" id="orb"><div class="bpm" id="bpm">—</div><div class="bpm-l">BPM</div></div>
     </div>
     <p class="hint" id="hint">Feel music around you through your phone</p>
   </section>
 
   <section class="panel">
-    <div class="row" id="rowFile">
+    <div class="row hide" id="rowFile">
       <label>Song</label>
       <label class="file" for="fileIn" id="fileName">Choose a song…</label>
       <button class="demo-btn" id="demoBtn">Demo beat</button>
@@ -155,63 +159,67 @@ let ctx, analyser, bassFilter, micStream, micSrc, songSrc, audioEl, raf, metroTi
 let history = [], lastBeat = 0, lastFlash = 0, intervals = [], beatCount = 0;
 
 // ---------- UI wiring ----------
-function segment(id, key){
-  $(id).addEventListener('click', e=>{
-    const b = e.target.closest('button'); if(!b) return;
-    [...$(id).children].forEach(x=>x.classList.toggle('on', x===b));
-    state[key] = +b.dataset.v;
-    if(key==='buzz') pulse(true); // preview
-  });
-}
-segment('buzz','buzz');
-let flashOK = false;
-$('flashSeg').addEventListener('click', e=>{
-  const b = e.target.closest('button'); if(!b) return;
-  const pick = () => { [...$('flashSeg').children].forEach(x=>x.classList.toggle('on', x===b)); state.flash = +b.dataset.v; };
-  if(b.dataset.v==='2' && !flashOK){
-    $('warn').classList.remove('hide');
-    $('warnYes').onclick = () => { flashOK = true; $('warn').classList.add('hide'); pick(); };
-    $('warnNo').onclick  = () => $('warn').classList.add('hide');
-  } else pick();
-});
-
-$('sens').oninput = e => { state.sens = +e.target.value; $('sensV').textContent = state.sens; };
-$('tempo').oninput = e => { state.tempo = +e.target.value; $('tempoV').textContent = state.tempo; if(state.mode==='metro') $('bpm').textContent = state.tempo; };
-
+// All events are delegated from the document, so controls keep working even if a host page re-renders the markup.
 const hints = {
   mic:'Feel music around you through your phone',
   song:'Pick a song, or play the demo beat',
   metro:'A steady beat to dance, play or practice to'
 };
-$('modes').addEventListener('click', e=>{
-  const b = e.target.closest('button'); if(!b || b.dataset.m===state.mode) return;
+let flashOK = false, pendingFlash = null;
+let useDemo = false, demoGain, demoTimer;
+
+function selectIn(group, btn){ [...group.children].forEach(x=>x.classList.toggle('on', x===btn)); }
+function setFlash(btn){ selectIn($('flashSeg'), btn); state.flash = +btn.dataset.v; }
+function setMode(btn){
+  if(btn.dataset.m===state.mode) return;
   stop();
-  state.mode = b.dataset.m;
-  [...$('modes').children].forEach(x=>x.classList.toggle('on', x===b));
+  state.mode = btn.dataset.m;
+  selectIn($('modes'), btn);
   $('rowFile').classList.toggle('hide', state.mode!=='song');
   $('rowSens').classList.toggle('hide', state.mode==='metro');
   $('rowTempo').classList.toggle('hide', state.mode!=='metro');
-  $('bpm').textContent = state.mode==='metro' ? state.tempo : '--';
+  $('bpm').textContent = state.mode==='metro' ? state.tempo : '—';
   $('hint').textContent = hints[state.mode];
-});
-$('rowFile').classList.add('hide');
+}
+function toggleDemo(){
+  stop(); useDemo = !useDemo;
+  $('demoBtn').classList.toggle('on', useDemo);
+  $('fileName').textContent = useDemo ? 'Demo beat' : (audioEl?.src ? 'Song loaded' : 'Choose a song…');
+}
 
-$('fileIn').onchange = e => {
+document.addEventListener('click', e=>{
+  const b = e.target.closest('button'); if(!b) return;
+  const group = b.parentElement && b.parentElement.id;
+  if(group==='modes') return setMode(b);
+  if(group==='buzz'){ selectIn($('buzz'), b); state.buzz = +b.dataset.v; return pulse(true); }
+  if(group==='flashSeg'){
+    if(b.dataset.v==='2' && !flashOK){ pendingFlash = b.dataset.v; $('warn').classList.remove('hide'); return; }
+    return setFlash(b);
+  }
+  switch(b.id){
+    case 'warnYes': flashOK = true; $('warn').classList.add('hide');
+                    return setFlash($('flashSeg').querySelector('[data-v="'+pendingFlash+'"]'));
+    case 'warnNo':  return $('warn').classList.add('hide');
+    case 'demoBtn': return toggleDemo();
+    case 'go':      return state.running ? stop() : start();
+  }
+});
+
+document.addEventListener('input', e=>{
+  if(e.target.id==='sens'){ state.sens = +e.target.value; $('sensV').textContent = state.sens; }
+  if(e.target.id==='tempo'){ state.tempo = +e.target.value; $('tempoV').textContent = state.tempo; if(state.mode==='metro') $('bpm').textContent = state.tempo; }
+});
+
+document.addEventListener('change', e=>{
+  if(e.target.id!=='fileIn') return;
   const f = e.target.files[0]; if(!f) return;
   stop();
+  useDemo = false; $('demoBtn').classList.remove('on');
   $('fileName').textContent = f.name;
   if(!audioEl){ audioEl = new Audio(); audioEl.playsInline = true; audioEl.onended = stop; }
   if(audioEl.src) URL.revokeObjectURL(audioEl.src);
   audioEl.src = URL.createObjectURL(f);
-};
-
-let useDemo = false, demoGain, demoTimer;
-$('demoBtn').onclick = () => {
-  stop(); useDemo = !useDemo;
-  $('demoBtn').classList.toggle('on', useDemo);
-  $('fileName').textContent = useDemo ? 'Demo · 120 BPM' : (audioEl?.src ? 'Song loaded' : 'Choose a song…');
-};
-$('fileIn').addEventListener('change', () => { useDemo = false; $('demoBtn').classList.remove('on'); });
+});
 
 // Built-in drum loop (synthesized, no file needed): kick every beat, snare on 2 & 4, hi-hats on 8ths
 function startDemo(){
@@ -247,7 +255,6 @@ function startDemo(){
   sched();
 }
 
-$('go').onclick = () => state.running ? stop() : start();
 
 // ---------- Beat output ----------
 function pulse(preview, accent){
@@ -378,6 +385,11 @@ function setRunning(on){
   $('statusTxt').textContent = on ? 'Live' : 'Ready';
   if(on) $('hint').textContent = canVibrate ? 'Feel the buzz on every beat' : 'Taps + flashes on every beat';
   else $('hint').textContent = hints[state.mode];
+}
+
+// Offline support + installable app (only on the real site, not inside preview frames)
+if('serviceWorker' in navigator && location.protocol==='https:' && window.self===window.top){
+  window.addEventListener('load', ()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 }
 
 document.addEventListener('visibilitychange', async ()=>{
