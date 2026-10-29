@@ -29,9 +29,10 @@ Music is more than sound. It's the kick drum in your chest and the bass through 
 **THREE WAYS TO FEEL IT**
 • **Listen:** Feel the music around you at a concert, in the car or at a party.
 • **Song:** Pick any song on your phone and feel every beat as it plays.
-• **Metronome:** A steady, adjustable beat for dancing, drumming and practice.
+• **Metronome:** A steady, adjustable beat for dancing, drumming and practice. Tap to set the tempo.
 
 **MADE TO FIT YOU**
+• Feel each beat, or switch to Bass and feel the bass line.
 • Choose a light, medium or strong buzz.
 • Adjust sensitivity for quiet rooms or loud venues.
 • See the live tempo (BPM) of what you're feeling.
@@ -54,7 +55,7 @@ Primary: **Music**. Secondary: **Health & Fitness** (App Store) / Tags: **Access
 
 ## Short social post
 Introducing **Feel The Beat**, an app that turns music into vibration and light so deaf and hard-of-hearing people can feel every beat. 🎵📳
-Try it free: https://saintjohn314.github.io/Feel-The-Beat/
+Try it free: https://feel-the-beat-app.netlify.app
 
 ## Press blurb (about 100 words)
-**Feel The Beat** is a free app that lets deaf and hard-of-hearing people feel music. Using the phone's microphone, a song from the user's library, or a built-in metronome, it detects each beat in real time. It turns every beat into a vibration and a visual pulse. There's no account, no ads and no data collection, and everything runs on the device. Created by John Wood, Feel The Beat is available now as a web app. Native iPhone and Android versions are in development.
+**Feel The Beat** is a free app that lets deaf and hard-of-hearing people feel music. Using the phone's microphone, a song from the user's library, or a built-in metronome, it detects each beat in real time. It turns every beat into a vibration and a visual pulse. There's no account, no ads and no data collection, and everything runs on the device. Created by John Wood, Feel The Beat is available now as a web app at feel-the-beat-app.netlify.app. iPhone and Android apps, with full vibration on iPhone, are coming soon.
