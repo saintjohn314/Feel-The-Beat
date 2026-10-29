@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Feel The Beat</string>
+    <string name="title_activity_main">Feel The Beat</string>
+    <string name="package_name">com.johnwood.feelthebeat</string>
+    <string name="custom_url_scheme">com.johnwood.feelthebeat</string>
+</resources>

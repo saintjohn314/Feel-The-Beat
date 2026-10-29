@@ -1,0 +1,54 @@
+# Builds the iPhone and Android apps on every change, so you know they still compile.
+# The Android build is saved as an installable APK: open the workflow run and download "feel-the-beat-android".
+name: Native apps
+
+on:
+  push:
+    paths: ['index.html', 'sw.js', 'manifest.webmanifest', 'icons/**', 'scripts/**', 'native/**', '.github/workflows/native-apps.yml']
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: native/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Install and copy the web app into the Android project
+        working-directory: native
+        run: npm ci && npm run copy && npx cap sync android
+      - name: Build debug APK
+        working-directory: native/android
+        run: ./gradlew assembleDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: feel-the-beat-android
+          path: native/android/app/build/outputs/apk/debug/app-debug.apk
+
+  ios:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: native/package-lock.json
+      - name: Install and copy the web app into the iOS project
+        working-directory: native
+        run: npm ci && npm run copy && npx cap sync ios
+      - name: Build for the iOS Simulator (no signing needed)
+        working-directory: native/ios/App
+        run: |
+          xcodebuild -version
+          xcodebuild -project App.xcodeproj -scheme App -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build | tail -40
+          test "${PIPESTATUS[0]}" -eq 0
