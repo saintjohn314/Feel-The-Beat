@@ -1,5 +1,5 @@
 // Feel The Beat service worker: lets the app open offline after the first visit.
-const CACHE = 'ftb-v2';
+const CACHE = 'ftb-v3';
 const ASSETS = ['./', './index.html', './manifest.webmanifest',
   './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png', './icons/favicon-32.png'];
 

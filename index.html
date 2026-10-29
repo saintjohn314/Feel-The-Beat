@@ -23,25 +23,32 @@
   html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);-webkit-font-smoothing:antialiased;
             overflow-x:hidden;touch-action:manipulation;user-select:none;-webkit-user-select:none}
   button{font-family:var(--font);cursor:pointer}
+  button:focus-visible,label:focus-visible,input:focus-visible{outline:2px solid #fff;outline-offset:2px}
   .app{min-height:100%;max-width:460px;margin:0 auto;display:flex;flex-direction:column;
        padding:calc(env(safe-area-inset-top) + 18px) 20px calc(env(safe-area-inset-bottom) + 20px)}
 
   header{display:flex;justify-content:space-between;align-items:center}
   .logo{font-weight:600;font-size:17px;letter-spacing:-.01em;display:flex;align-items:center;gap:8px}
   .mk{width:22px;height:22px}
+  .hdr-r{display:flex;align-items:center;gap:12px}
   .status{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:7px}
   .dot{width:7px;height:7px;border-radius:50%;background:var(--faint);transition:background .3s}
   .live .dot{background:var(--live)}
+  .help-btn{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--muted);
+            font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center}
 
   .modes{margin-top:20px;display:grid;grid-template-columns:repeat(3,1fr);background:var(--surface);border-radius:12px;padding:3px}
   .modes button{background:none;border:0;color:var(--muted);font-weight:500;font-size:14px;padding:9px 0;border-radius:9px;transition:all .2s}
   .modes button.on{background:var(--raised);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.5)}
 
   .stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:18px 0}
-  .orb-wrap{position:relative;width:clamp(150px,min(64vw,34vh),270px);aspect-ratio:1;flex-shrink:0}
+  .orb-wrap{position:relative;width:clamp(150px,min(64vw,32vh),270px);aspect-ratio:1;flex-shrink:0}
   .track{position:absolute;inset:0;border-radius:50%;border:1px solid var(--line)}
+  .glow{position:absolute;inset:2%;border-radius:50%;pointer-events:none;opacity:0;transform:scale(.9);will-change:transform,opacity;
+        background:radial-gradient(circle,rgba(255,255,255,.30) 0%,rgba(255,255,255,.10) 48%,rgba(255,255,255,0) 70%)}
   .ring{position:absolute;inset:0;border-radius:50%;border:1px solid rgba(255,255,255,.7);opacity:0}
   .ring.go{animation:ring .8s cubic-bezier(.2,.7,.3,1)}
+  .ring.big{border-width:2px}
   @keyframes ring{0%{transform:scale(.86);opacity:.9}100%{transform:scale(1.28);opacity:0}}
   .orb{position:absolute;inset:14%;border-radius:50%;background:var(--surface);border:1px solid var(--line);
        display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -50,33 +57,53 @@
   .bpm{font-size:clamp(34px,min(15vw,7.5vh),60px);font-weight:600;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums}
   .bpm-l{font-size:11px;font-weight:500;color:var(--muted);letter-spacing:.18em;margin-top:8px}
   .orb.hit .bpm-l{color:#555}
+  .tap{position:absolute;inset:14%;border-radius:50%;z-index:2;cursor:pointer}
+  .dots{display:flex;gap:12px;justify-content:center;margin-top:clamp(12px,2.6vh,22px)}
+  .dots i{width:10px;height:10px;border-radius:50%;background:var(--raised);border:1px solid var(--faint);transition:background .12s,transform .12s}
+  .dots i.on{background:#fff;border-color:#fff;transform:scale(1.25)}
   .hint{margin-top:clamp(12px,3vh,26px);color:var(--muted);font-size:15px;text-align:center;min-height:20px}
+  .notice{margin-top:6px;background:none;border:0;color:var(--muted);font-size:13px;line-height:1.35;padding:4px 8px;text-align:center}
+  .notice b{color:var(--text);font-weight:500;white-space:nowrap}
+  .dots:not(.hide) + .hint{margin-top:clamp(8px,1.8vh,16px)}
 
   .panel{background:var(--surface);border-radius:16px;padding:6px 16px}
   .row{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:15px;padding:11px 0;border-bottom:1px solid var(--line)}
   .row:last-child{border-bottom:0}
-  .row > label:first-child{color:var(--text);min-width:88px}
+  .row > label:first-child,.row > span:first-child{color:var(--text);min-width:80px}
   .row b{min-width:32px;text-align:right;font-weight:500;color:var(--muted);font-variant-numeric:tabular-nums}
-  input[type=range]{flex:1;-webkit-appearance:none;appearance:none;height:4px;border-radius:2px;background:var(--raised);outline:none}
+  input[type=range]{flex:1;min-width:0;-webkit-appearance:none;appearance:none;height:4px;border-radius:2px;background:var(--raised);outline:none}
   input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;background:#fff;border:0;box-shadow:0 1px 4px rgba(0,0,0,.6)}
   input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:#fff;border:0}
   .seg{display:flex;background:var(--raised);border-radius:9px;padding:2px}
   .seg button{background:none;border:0;color:var(--muted);font-weight:500;font-size:13px;padding:6px 12px;border-radius:7px;transition:all .2s}
   .seg button.on{color:#000;background:#fff}
+  .seg.num button{min-width:38px;padding:6px 0}
   .file{flex:1;min-width:0;background:var(--raised);color:var(--muted);font-weight:500;font-size:13px;padding:9px 10px;border-radius:9px;
-        text-align:center;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+        text-align:center;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;cursor:pointer}
   .demo-btn{background:var(--raised);border:0;color:var(--text);font-weight:500;font-size:13px;padding:9px 12px;border-radius:9px;white-space:nowrap}
   .demo-btn.on{color:#000;background:#fff}
   .hide{display:none!important}
 
   .modal{position:fixed;inset:0;background:rgba(0,0,0,.8);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
          display:flex;align-items:center;justify-content:center;padding:20px;z-index:30}
-  .modal-card{max-width:360px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:22px}
+  .modal-card{max-width:380px;width:100%;max-height:calc(100% - env(safe-area-inset-top) - env(safe-area-inset-bottom));overflow-y:auto;
+              background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:22px}
+  .modal-card:focus{outline:none}
   .modal-card h2{font-size:17px;font-weight:600;margin-bottom:10px}
-  .modal-card p{color:#c7c7cc;font-size:14px;line-height:1.5}
+  .modal-card h3{font-size:13px;font-weight:600;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin:18px 0 8px}
+  .modal-card p,.modal-card li{color:#c7c7cc;font-size:14px;line-height:1.5}
+  .modal-card ul{padding-left:18px;display:grid;gap:6px}
   .modal-card .btns{display:flex;gap:10px;margin-top:20px}
-  .modal-card button{flex:1;border:0;border-radius:11px;padding:13px;font-weight:600;font-size:14px}
+  .modal-card button,.test-btn{flex:1;border:0;border-radius:11px;padding:13px;font-weight:600;font-size:14px;text-align:center}
   .modal-card .no{background:var(--raised);color:var(--text)} .modal-card .yes{background:#fff;color:#000}
+  .device{display:flex;gap:12px;align-items:flex-start;background:var(--raised);border-radius:12px;padding:12px}
+  .device i{flex-shrink:0;width:10px;height:10px;border-radius:50%;margin-top:5px;background:var(--live)}
+  .device.limited i{background:#ff9f0a}
+  .device p{color:var(--text)}
+  .device small{display:block;color:#c7c7cc;font-size:13px;line-height:1.45;margin-top:4px}
+  .test-btn{display:block;margin-top:10px;background:#fff;color:#000;cursor:pointer;position:relative}
+  .test-note{font-size:13px;color:var(--muted);text-align:center;margin-top:8px}
+  .test-note:empty{margin:0}
 
   .go-btn{margin-top:14px;width:100%;border:0;border-radius:14px;padding:17px;font-weight:600;font-size:17px;color:#000;background:#fff;transition:transform .1s,background .2s}
   .go-btn:active{transform:scale(.98)}
@@ -84,16 +111,23 @@
   .flash{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;transition:opacity .18s ease-out;z-index:9}
   .flash.on{opacity:.85;transition:none}
   .toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 14px);transform:translate(-50%,-160%);width:min(92vw,420px);
-         background:var(--raised);border:1px solid var(--line);color:#fff;font-size:14px;line-height:1.45;padding:12px 14px;border-radius:13px;z-index:20;
+         background:var(--raised);border:1px solid var(--line);color:#fff;font-size:14px;line-height:1.45;padding:12px 14px;border-radius:13px;z-index:40;
          box-shadow:0 8px 30px rgba(0,0,0,.6);transition:transform .3s cubic-bezier(.2,.7,.3,1)}
   .toast.show{transform:translate(-50%,0)}
-  @media (max-height:640px){ .row{padding:8px 0} .go-btn{padding:14px;margin-top:10px} .modes{margin-top:12px} .orb-wrap{width:clamp(150px,min(64vw,30vh),270px)} .stage{padding:12px 0} }
-  #hap{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px}
+  /* hidden switches: on iPhone, toggling one makes the phone tap (Safari's only haptic) */
+  .sw{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px}
+  @media (max-height:860px){ .row{padding:9px 0} .orb-wrap{width:clamp(130px,min(64vw,29vh),270px)} }
+  @media (max-height:700px){ .app{padding-top:calc(env(safe-area-inset-top) + 12px)} .row{padding:6px 0} .seg button{padding:5px 11px}
+                             .go-btn{padding:14px;margin-top:10px} .modes{margin-top:12px} .modes button{padding:8px 0} .stage{padding:8px 0}
+                             .orb-wrap{width:clamp(112px,min(64vw,24vh),270px)} .bpm-l{margin-top:4px} .hint{margin-top:8px;font-size:14px}
+                             .dots:not(.hide) + .hint{margin-top:6px} .dots{margin-top:10px} .notice{margin-top:2px} }
+  @media (prefers-reduced-motion:reduce){ .orb,.orb.hit{transform:none} .ring.go{animation-duration:.4s} .toast{transition:none} }
 </style>
 </head>
 <body>
 <div class="flash" id="flash"></div>
 <div class="toast" id="toast" role="alert"></div>
+
 <div class="modal hide" id="warn" role="dialog" aria-modal="true" aria-labelledby="warnT">
   <div class="modal-card">
     <h2 id="warnT">Photosensitivity warning</h2>
@@ -101,49 +135,85 @@
     <div class="btns"><button class="no" id="warnNo">Cancel</button><button class="yes" id="warnYes">I understand, turn on</button></div>
   </div>
 </div>
-<!-- iOS 18+ haptic trick: toggling a native switch triggers a system tap -->
-<input type="checkbox" switch id="hapSwitch" aria-hidden="true" tabindex="-1" style="position:absolute;opacity:0;pointer-events:none"><label for="hapSwitch" id="hap"></label>
+
+<div class="modal hide" id="help" role="dialog" aria-modal="true" aria-labelledby="helpT">
+  <div class="modal-card" id="helpCard" tabindex="-1">
+    <h2 id="helpT">Feel music through your phone</h2>
+    <p>Feel The Beat listens for the beat and turns it into a buzz you feel and a pulse you see.</p>
+    <h3>This phone</h3>
+    <div class="device" id="device"><i></i><div><p id="deviceT"></p><small id="deviceS"></small></div></div>
+    <label class="test-btn" id="testBuzz" role="button" tabindex="0"><input type="checkbox" switch class="sw" tabindex="-1" aria-hidden="true">Test buzz</label>
+    <p class="test-note" id="testNote" aria-live="polite"></p>
+    <h3>Tips</h3>
+    <ul>
+      <li>Hold the phone, or keep it in a pocket.</li>
+      <li><b>Listen:</b> put the phone near the speaker. Strong bass works best.</li>
+      <li><b>Feel › Bass:</b> the buzz follows the bass line instead of each beat.</li>
+      <li><b>Metronome:</b> tap the circle to set the tempo.</li>
+      <li>No buzz? Turn on vibration in your phone's settings, and turn off Battery Saver or Low Power Mode.</li>
+    </ul>
+    <p style="margin-top:14px">Private: everything happens on your phone. Nothing is recorded or uploaded.</p>
+    <div class="btns"><button class="yes" id="helpClose">Got it</button></div>
+  </div>
+</div>
+
+<!-- iPhone (iOS 18 up to 26.4): clicking this label from code makes a system tap -->
+<input type="checkbox" switch id="hapSwitch" class="sw" aria-hidden="true" tabindex="-1"><label for="hapSwitch" id="hap" class="sw" aria-hidden="true"></label>
 
 <div class="app">
   <header>
     <div class="logo"><svg class="mk" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="12.5" fill="#fff"/><g fill="none" stroke-width="7" stroke-linecap="round"><path d="M69.32 32.60A26 26 0 0 1 69.32 67.40M30.68 67.40A26 26 0 0 1 30.68 32.60" stroke="#fff"/><path d="M79.73 23.24A40 40 0 0 1 79.73 76.76M20.27 76.76A40 40 0 0 1 20.27 23.24" stroke="#fff" stroke-opacity=".5"/></g></svg>Feel The Beat</div>
-    <div class="status" id="status"><i class="dot"></i><span id="statusTxt">Ready</span></div>
+    <div class="hdr-r">
+      <div class="status" id="status"><i class="dot"></i><span id="statusTxt" aria-live="polite">Ready</span></div>
+      <button class="help-btn" id="helpBtn" aria-label="Help and vibration test">?</button>
+    </div>
   </header>
 
   <nav class="modes" id="modes">
-    <button data-m="mic" class="on">Listen</button>
-    <button data-m="song">Song</button>
-    <button data-m="metro">Metronome</button>
+    <button data-m="mic" class="on" aria-pressed="true">Listen</button>
+    <button data-m="song" aria-pressed="false">Song</button>
+    <button data-m="metro" aria-pressed="false">Metronome</button>
   </nav>
 
   <section class="stage">
     <div class="orb-wrap">
-      <div class="track"></div><div class="ring" id="ring"></div>
+      <div class="track"></div><div class="glow" id="glow"></div><div class="ring" id="ring"></div>
       <div class="orb" id="orb"><div class="bpm" id="bpm">—</div><div class="bpm-l">BPM</div></div>
+      <label class="tap hide" id="tapPad" aria-label="Tap to set the tempo"><input type="checkbox" switch class="sw" tabindex="-1" aria-hidden="true"></label>
     </div>
+    <div class="dots hide" id="dots" aria-hidden="true"></div>
     <p class="hint" id="hint">Feel music around you through your phone</p>
+    <button class="notice hide" id="notice"><span id="noticeT"></span> <b>Learn more ›</b></button>
   </section>
 
   <section class="panel">
     <div class="row hide" id="rowFile">
-      <label>Song</label>
+      <span>Song</span>
       <label class="file" for="fileIn" id="fileName">Choose a song (MP3, WAV)…</label>
-      <button class="demo-btn" id="demoBtn">Demo beat</button>
+      <button class="demo-btn" id="demoBtn" aria-pressed="false">Demo beat</button>
       <input type="file" id="fileIn" accept=".mp3,.wav,.m4a,.aac,.ogg,.oga,.flac,.opus,.webm,audio/mpeg,audio/mp3,audio/wav,audio/x-wav,audio/wave,audio/mp4,audio/x-m4a,audio/aac,audio/ogg,audio/flac,audio/*" class="hide">
     </div>
     <div class="row" id="rowSens">
-      <label>Sensitivity</label><input type="range" id="sens" min="1" max="10" value="6"><b id="sensV">6</b>
+      <label for="sens">Sensitivity</label><input type="range" id="sens" min="1" max="10" value="6"><b id="sensV">6</b>
     </div>
     <div class="row hide" id="rowTempo">
-      <label>Tempo</label><input type="range" id="tempo" min="40" max="220" value="100"><b id="tempoV">100</b>
+      <label for="tempo">Tempo</label><input type="range" id="tempo" min="40" max="220" value="100"><b id="tempoV">100</b>
+    </div>
+    <div class="row hide" id="rowBar">
+      <span>Beats</span>
+      <div class="seg num" id="barSeg" aria-label="Beats per bar"><button data-v="2" aria-pressed="false">2</button><button data-v="3" aria-pressed="false">3</button><button data-v="4" class="on" aria-pressed="true">4</button><button data-v="6" aria-pressed="false">6</button></div>
+    </div>
+    <div class="row" id="rowFeel">
+      <span>Feel</span>
+      <div class="seg" id="feelSeg"><button data-v="beat" class="on" aria-pressed="true">Beat</button><button data-v="bass" aria-pressed="false">Bass</button></div>
     </div>
     <div class="row">
-      <label>Buzz</label>
-      <div class="seg" id="buzz"><button data-v="40">Light</button><button data-v="90" class="on">Medium</button><button data-v="160">Strong</button></div>
+      <span>Buzz</span>
+      <div class="seg" id="buzz"><button data-v="40" aria-pressed="false">Light</button><button data-v="90" class="on" aria-pressed="true">Medium</button><button data-v="160" aria-pressed="false">Strong</button></div>
     </div>
     <div class="row">
-      <label>Flash</label>
-      <div class="seg" id="flashSeg"><button data-v="0">Off</button><button data-v="1" class="on">Orb</button><button data-v="2">Screen</button></div>
+      <span>Flash</span>
+      <div class="seg" id="flashSeg"><button data-v="0" aria-pressed="false">Off</button><button data-v="1" class="on" aria-pressed="true">Orb</button><button data-v="2" aria-pressed="false">Screen</button></div>
     </div>
   </section>
 
@@ -152,46 +222,156 @@
 
 <script>
 const $ = id => document.getElementById(id);
-const canVibrate = 'vibrate' in navigator;
-const state = { mode:'mic', running:false, buzz:90, flash:1, sens:6, tempo:100 };
+const state = { mode:'mic', running:false, buzz:90, flash:1, sens:6, tempo:100, bar:4, feel:'beat' };
 
 let ctx, analyser, bassFilter, micStream, micSrc, songSrc, audioEl, raf, metroTimer, wakeLock;
 let history = [], lastBeat = 0, lastFlash = 0, intervals = [], beatCount = 0;
+
+// ---------- Vibration ----------
+// Which kind of buzz this phone can do:
+//   app-ios / app-android  the native app (Capacitor): full vibration motor on both
+//   vibrate                Android browsers: full vibration through navigator.vibrate
+//   ios-web                iPhone browsers: no vibration API, only the switch tap trick (blocked from iOS 26.5)
+//   none                   computers and tablets without a motor
+const UA = navigator.userAgent;
+const Cap = window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform() ? window.Capacitor : null;
+const canVibrate = typeof navigator.vibrate === 'function';
+const isIOS = /iPhone|iPod|iPad/.test(UA) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const isPhone = /Android|Mobi/i.test(UA) || matchMedia('(pointer:coarse)').matches;
+const device = Cap ? 'app-' + Cap.getPlatform() : isIOS ? 'ios-web' : canVibrate && isPhone ? 'vibrate' : 'none';
+const fullBuzz = device === 'app-ios' || device === 'app-android' || device === 'vibrate';
+
+function native(plugin, method, opts){ try{ Cap.nativePromise(plugin, method, opts || {}).catch(()=>{}); }catch(e){} }
+function switchTaps(n){ for(let i=0;i<n;i++) setTimeout(()=>{ try{ $('hap').click(); }catch(e){} }, i*55); }
+const buzzLevel = () => state.buzz < 60 ? 0 : state.buzz < 120 ? 1 : 2;   // Light, Medium, Strong
+
+const haptic = {
+  // One beat. strength 0–1 is how hard the beat hit; accent is the first beat of a bar.
+  beat(strength = 1, accent = false){
+    const ms = Math.round(state.buzz * (0.75 + 0.5*strength) * (accent ? 1.6 : 1));
+    if(device === 'app-ios'){
+      // iPhone's strongest haptic is a heavy tap; Strong and accents add a second (and third) tap right after.
+      const style = buzzLevel() === 0 ? 'MEDIUM' : 'HEAVY';
+      const taps = 1 + (buzzLevel() === 2 ? 1 : 0) + (accent ? 1 : 0);
+      for(let i=0;i<taps;i++) setTimeout(()=>native('Haptics', 'impact', {style}), i*45);
+    }
+    else if(device === 'app-android') native('Haptics', 'vibrate', {duration: ms});
+    else if(device === 'ios-web') switchTaps(1 + buzzLevel() + (accent ? 1 : 0));
+    else if(canVibrate){ try{ navigator.vibrate(ms); }catch(e){} }
+  },
+  // Bass mode: called about 20 times a second with how loud the bass is right now (0–1).
+  // Each call replaces the last, so the motor runs for a slice of every 50 ms: louder bass, longer slice.
+  rumble(level){
+    const on = level * [0.55, 0.8, 1][buzzLevel()];
+    const now = performance.now();
+    if(on < 0.12) return;
+    const ms = Math.round(12 + Math.min(1, on) * 43);
+    if(device === 'app-android') native('Haptics', 'vibrate', {duration: ms});
+    else if(device === 'app-ios'){
+      if(now - this.last < 90) return; this.last = now;
+      native('Haptics', 'impact', {style: on > 0.7 ? 'HEAVY' : on > 0.4 ? 'MEDIUM' : 'LIGHT'});
+    }
+    else if(device === 'ios-web'){ if(on > 0.35 && now - this.last > 120){ this.last = now; switchTaps(1); } }
+    else if(canVibrate){ try{ navigator.vibrate(ms); }catch(e){} }
+  },
+  last: 0,
+  stop(){ if(canVibrate){ try{ navigator.vibrate(0); }catch(e){} } }
+};
+
+const deviceInfo = {
+  'app-ios':     ['Full vibration on every beat.', 'Uses iPhone\'s Taptic Engine.'],
+  'app-android': ['Full vibration on every beat.', 'Uses your phone\'s vibration motor.'],
+  'vibrate':     ['Full vibration on every beat.', 'Your browser can use the vibration motor.'],
+  'ios-web':     ['iPhone browsers can\'t vibrate to music.', 'Apple doesn\'t let websites use the vibration motor. Some iPhones make light taps, but iOS 26.5 and later block them. You\'ll still see every beat. For a real buzz, use the Feel The Beat iPhone app.'],
+  'none':        ['This device can\'t vibrate.', 'You\'ll see every beat as a pulse. Open Feel The Beat on your phone to feel it.']
+};
 
 // ---------- UI wiring ----------
 // All events are delegated from the document, so controls keep working even if a host page re-renders the markup.
 const hints = {
   mic:'Feel music around you through your phone',
   song:'Pick a song, or play the demo beat',
-  metro:'A steady beat to dance, play or practice to'
+  metro:'Tap the circle to set the tempo'
 };
 let flashOK = false, pendingFlash = null;
 let useDemo = false, demoGain, demoTimer;
 
-function selectIn(group, btn){ [...group.children].forEach(x=>x.classList.toggle('on', x===btn)); }
-function setFlash(btn){ selectIn($('flashSeg'), btn); state.flash = +btn.dataset.v; }
+function selectIn(group, btn){ [...group.children].forEach(x=>{ x.classList.toggle('on', x===btn); x.setAttribute('aria-pressed', x===btn); }); }
+function pick(groupId, value){ const b = $(groupId).querySelector('[data-v="'+value+'"],[data-m="'+value+'"]'); if(b) selectIn($(groupId), b); return b; }
+function setFlash(btn){ selectIn($('flashSeg'), btn); state.flash = +btn.dataset.v; save(); }
 function setMode(btn){
   if(btn.dataset.m===state.mode) return;
   stop();
   state.mode = btn.dataset.m;
   selectIn($('modes'), btn);
+  const metro = state.mode==='metro';
   $('rowFile').classList.toggle('hide', state.mode!=='song');
-  $('rowSens').classList.toggle('hide', state.mode==='metro');
-  $('rowTempo').classList.toggle('hide', state.mode!=='metro');
-  $('bpm').textContent = state.mode==='metro' ? state.tempo : '—';
+  $('rowSens').classList.toggle('hide', metro);
+  $('rowFeel').classList.toggle('hide', metro);
+  $('rowTempo').classList.toggle('hide', !metro);
+  $('rowBar').classList.toggle('hide', !metro);
+  $('tapPad').classList.toggle('hide', !metro);
+  $('dots').classList.toggle('hide', !metro);
+  $('bpm').textContent = metro ? state.tempo : '—';
   $('hint').textContent = hints[state.mode];
+  save();
 }
 function toggleDemo(){
   stop(); useDemo = !useDemo;
-  $('demoBtn').classList.toggle('on', useDemo);
-  $('fileName').textContent = useDemo ? 'Demo beat' : (audioEl?.src ? 'Song loaded' : 'Choose a song (MP3, WAV)…');
+  $('demoBtn').classList.toggle('on', useDemo); $('demoBtn').setAttribute('aria-pressed', useDemo);
+  $('fileName').textContent = useDemo ? 'Or pick a song…' : (audioEl?.src ? 'Song loaded' : 'Choose a song (MP3, WAV)…');
+}
+function setTempo(v){
+  state.tempo = Math.max(40, Math.min(220, Math.round(v)));
+  $('tempo').value = state.tempo; $('tempoV').textContent = state.tempo;
+  if(state.mode==='metro') $('bpm').textContent = state.tempo;
+  save();
+}
+function drawDots(){
+  $('dots').innerHTML = Array.from({length:state.bar}, ()=>'<i></i>').join('');
+}
+function lightDot(i){ [...$('dots').children].forEach((d,k)=>d.classList.toggle('on', k===i)); }
+function openHelp(){
+  const [t, s] = deviceInfo[device];
+  $('deviceT').textContent = t; $('deviceS').textContent = s;
+  $('device').classList.toggle('limited', !fullBuzz);
+  $('testNote').textContent = '';
+  $('help').classList.remove('hide');
+  $('helpCard').scrollTop = 0; $('helpCard').focus({preventScroll:true});
+}
+function closeHelp(){ $('help').classList.add('hide'); try{ localStorage.setItem('ftb-seen', '1'); }catch(e){} }
+
+// Tap tempo: tap the circle 2+ times; a gap of over 2 s starts a new count.
+let taps = [];
+function tapTempo(){
+  const now = performance.now();
+  if(taps.length && now - taps[taps.length-1] > 2000) taps = [];
+  taps.push(now); if(taps.length > 5) taps.shift();
+  flashOrb(false);
+  if(device !== 'ios-web') haptic.beat(1);   // on iPhone browsers the tap itself makes the haptic (the switch inside the pad)
+  if(taps.length >= 2){
+    setTempo(60000 / ((taps[taps.length-1] - taps[0]) / (taps.length-1)));
+    if(state.running){ clearTimeout(metroTimer); beatCount = 1; metroNext = now + 60000/state.tempo; scheduleTick(); }  // stay in step with your taps
+  }
 }
 
 document.addEventListener('click', e=>{
+  // Labels re-send their click to the switch inside them; skip that copy.
+  if(e.target.tagName==='INPUT') return;
+  if(e.target.closest('#tapPad')) return tapTempo();
+  if(e.target.closest('#testBuzz')){
+    if(device !== 'ios-web') haptic.beat(1);
+    flashOrb(false);
+    $('testNote').textContent = fullBuzz ? 'Did you feel it? If not, see the tips below.' : device==='ios-web' ? 'You may feel a light tap.' : 'No vibration motor here.';
+    return;
+  }
+  if(e.target.id==='help') return closeHelp();   // tap outside the card
   const b = e.target.closest('button'); if(!b) return;
   const group = b.parentElement && b.parentElement.id;
   if(group==='modes') return setMode(b);
-  if(group==='buzz'){ selectIn($('buzz'), b); state.buzz = +b.dataset.v; return pulse(true); }
+  if(group==='buzz'){ selectIn($('buzz'), b); state.buzz = +b.dataset.v; save(); haptic.beat(1); return flashOrb(false); }
+  if(group==='feelSeg'){ selectIn($('feelSeg'), b); state.feel = b.dataset.v; haptic.stop(); return save(); }
+  if(group==='barSeg'){ selectIn($('barSeg'), b); state.bar = +b.dataset.v; drawDots(); return save(); }
   if(group==='flashSeg'){
     if(b.dataset.v==='2' && !flashOK){ pendingFlash = b.dataset.v; $('warn').classList.remove('hide'); return; }
     return setFlash(b);
@@ -200,14 +380,21 @@ document.addEventListener('click', e=>{
     case 'warnYes': flashOK = true; $('warn').classList.add('hide');
                     return setFlash($('flashSeg').querySelector('[data-v="'+pendingFlash+'"]'));
     case 'warnNo':  return $('warn').classList.add('hide');
+    case 'helpBtn': case 'notice': return openHelp();
+    case 'helpClose': return closeHelp();
     case 'demoBtn': return toggleDemo();
     case 'go':      return state.running ? stop() : start();
   }
 });
 
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape'){ $('warn').classList.add('hide'); if(!$('help').classList.contains('hide')) closeHelp(); }
+  if((e.key==='Enter' || e.key===' ') && e.target.id==='testBuzz'){ e.preventDefault(); e.target.click(); }
+});
+
 document.addEventListener('input', e=>{
-  if(e.target.id==='sens'){ state.sens = +e.target.value; $('sensV').textContent = state.sens; }
-  if(e.target.id==='tempo'){ state.tempo = +e.target.value; $('tempoV').textContent = state.tempo; if(state.mode==='metro') $('bpm').textContent = state.tempo; }
+  if(e.target.id==='sens'){ state.sens = +e.target.value; $('sensV').textContent = state.sens; save(); }
+  if(e.target.id==='tempo') setTempo(+e.target.value);
 });
 
 document.addEventListener('change', e=>{
@@ -216,7 +403,7 @@ document.addEventListener('change', e=>{
   const ok = /\.(mp3|wav|m4a|aac|ogg|oga|flac|opus|webm)$/i.test(f.name) || (f.type||'').startsWith('audio/');
   if(!ok){ toast('That isn\'t a song file. Pick an MP3 or WAV.'); e.target.value=''; return; }
   stop();
-  useDemo = false; $('demoBtn').classList.remove('on');
+  useDemo = false; $('demoBtn').classList.remove('on'); $('demoBtn').setAttribute('aria-pressed', false);
   $('fileName').textContent = f.name;
   if(!audioEl){
     audioEl = new Audio(); audioEl.playsInline = true; audioEl.onended = stop;
@@ -227,6 +414,27 @@ document.addEventListener('change', e=>{
   audioEl.load();
   e.target.value = '';   // lets you pick the same song again
 });
+
+// ---------- Saved settings ----------
+let restored = false;
+function save(){
+  if(!restored) return;   // don't save half-restored settings
+  try{ localStorage.setItem('ftb-settings', JSON.stringify({ mode:state.mode, buzz:state.buzz, flash:Math.min(state.flash,1),
+                                                           sens:state.sens, tempo:state.tempo, bar:state.bar, feel:state.feel })); }catch(e){}
+}
+function restore(){
+  let s = {};
+  try{ s = JSON.parse(localStorage.getItem('ftb-settings')) || {}; }catch(e){}
+  if([40,90,160].includes(s.buzz)){ state.buzz = s.buzz; pick('buzz', s.buzz); }
+  if([0,1].includes(s.flash)){ state.flash = s.flash; pick('flashSeg', s.flash); }   // Screen flash always asks again
+  if(s.sens>=1 && s.sens<=10){ state.sens = s.sens; $('sens').value = s.sens; $('sensV').textContent = s.sens; }
+  if(s.tempo>=40 && s.tempo<=220) setTempo(s.tempo);
+  if([2,3,4,6].includes(s.bar)){ state.bar = s.bar; pick('barSeg', s.bar); }
+  if(['beat','bass'].includes(s.feel)){ state.feel = s.feel; pick('feelSeg', s.feel); }
+  drawDots();
+  if(['song','metro'].includes(s.mode)) setMode($('modes').querySelector('[data-m="'+s.mode+'"]'));
+  restored = true;
+}
 
 // Built-in drum loop (synthesized, no file needed): kick every beat, snare on 2 & 4, hi-hats on 8ths
 function startDemo(){
@@ -264,22 +472,23 @@ function startDemo(){
 
 
 // ---------- Beat output ----------
-function pulse(preview, accent){
-  const ms = accent ? state.buzz * 1.8 : state.buzz;
-  if(canVibrate){ try{ navigator.vibrate(ms); }catch(e){} }
-  else { try{ $('hap').click(); if(state.buzz>=90) setTimeout(()=>$('hap').click(), 60); if(state.buzz>=160) setTimeout(()=>$('hap').click(), 120);}catch(e){} }
-  if(preview) return flashOrb();
-  flashOrb();
+function pulse(strength, accent){
+  haptic.beat(strength, accent);
+  showBeat(accent);
+}
+function showBeat(accent){
+  flashOrb(accent);
   if(state.flash===2 && performance.now()-lastFlash > 340){ lastFlash = performance.now(); $('flash').classList.add('on'); setTimeout(()=>$('flash').classList.remove('on'), 60); }
 }
-function flashOrb(){
+function flashOrb(accent){
   if(state.flash===0) return;
   const o = $('orb'), r = $('ring');
   o.classList.add('hit'); setTimeout(()=>o.classList.remove('hit'), 110);
+  r.classList.toggle('big', !!accent);
   r.classList.remove('go'); void r.offsetWidth; r.classList.add('go');
 }
 
-function onBeat(now){
+function onBeat(now, strength){
   if(lastBeat){
     const iv = now - lastBeat;
     if(iv < 2000){ intervals.push(iv); if(intervals.length>12) intervals.shift(); }
@@ -291,7 +500,8 @@ function onBeat(now){
     }
   }
   lastBeat = now;
-  pulse(false);
+  if(state.feel==='beat') pulse(strength, false);
+  else showBeat(false);            // Bass mode: the rumble does the buzzing
 }
 
 // ---------- Audio analysis (bass-focused beat detection) ----------
@@ -309,8 +519,11 @@ function ensureCtx(){
   if(ctx.state==='suspended') ctx.resume();
 }
 
+let quiet = false;
 function analyse(){
   const buf = new Float32Array(analyser.fftSize);
+  let frame = 0, peak = -35, level = 0, loudAt = performance.now();
+  const glow = $('glow');
   const loop = () => {
     analyser.getFloatTimeDomainData(buf);
     let e = 0; for(let i=0;i<buf.length;i++) e += buf[i]*buf[i];
@@ -321,9 +534,27 @@ function analyse(){
       let v = 0;  for(const h of history) v += (h-mu)*(h-mu);
       const sd = Math.sqrt(v/history.length);
       const k = 2.0 - state.sens*0.15;            // sens 1 → strict, sens 10 → catches everything
-      if(e > mu + k*sd && e > history[history.length-1] && e > 1e-6 && now-lastBeat > 280) onBeat(now);
+      if(e > mu + k*sd && e > history[history.length-1] && e > 1e-6 && now-lastBeat > 280)
+        onBeat(now, Math.min(1, Math.max(0, (e - mu - k*sd) / (3*sd + 1e-12))));
     }
     history.push(e); if(history.length > 60) history.shift();   // ~1 s of memory
+
+    // Bass level 0–1, relative to the loudest recent bass, for the glow and Bass mode.
+    // Sensitivity widens the range, so quieter bass still counts.
+    const db = 10*Math.log10(e + 1e-12), range = 12 + state.sens*2;
+    peak = Math.max(db, peak - 0.03, -35);
+    const raw = Math.max(0, Math.min(1, (db - (peak - range)) / range)) ** 1.5;
+    level = Math.max(raw, level * 0.82);
+    glow.style.opacity = level.toFixed(3);
+    glow.style.transform = 'scale(' + (0.9 + level*0.22).toFixed(3) + ')';
+    if(state.feel==='bass' && ++frame % 3 === 0) haptic.rumble(raw);
+
+    // Mic only: say so when there's nothing to feel.
+    if(db > -58) loudAt = now;
+    if(state.mode==='mic' && quiet !== (now - loudAt > 4000)){
+      quiet = !quiet;
+      $('hint').textContent = quiet ? 'Too quiet. Move closer to the music.' : runningHint();
+    }
   };
   clearInterval(raf);
   raf = setInterval(loop, 16);   // ~60 checks/sec; keeps running even when the page isn't being painted
@@ -341,35 +572,46 @@ async function start(){
         micSrc = ctx.createMediaStreamSource(micStream);
         micSrc.connect(bassFilter);             // not to speakers: avoids feedback
       } else {
-        if(useDemo){ startDemo(); analyse(); state.running = true; setRunning(true); try{ wakeLock = await navigator.wakeLock?.request('screen'); }catch(e){} return; }
-        if(!audioEl || !audioEl.src){ toast('Choose a song or tap "Demo beat"'); return; }
-        if(!songSrc){ songSrc = ctx.createMediaElementSource(audioEl); songSrc.connect(bassFilter); songSrc.connect(ctx.destination); }
-        await audioEl.play();
+        if(!useDemo && (!audioEl || !audioEl.src)){ toast('Choose a song or tap "Demo beat"'); return; }
+        // Let the song play even when the iPhone's silent switch is on
+        try{ if(navigator.audioSession) navigator.audioSession.type = 'playback'; }catch(e){}
+        if(useDemo) startDemo();
+        else {
+          if(!songSrc){ songSrc = ctx.createMediaElementSource(audioEl); songSrc.connect(bassFilter); songSrc.connect(ctx.destination); }
+          await audioEl.play();
+        }
       }
       analyse();
     }
     state.running = true;
     setRunning(true);
-    try{ wakeLock = await navigator.wakeLock?.request('screen'); }catch(e){}
+    keepAwake(true);
   }catch(err){
     const framed = window.self !== window.top;
     if(err.name==='NotAllowedError' || err.name==='SecurityError')
       toast(framed ? 'This preview window blocks the microphone. Open the app in its own tab (or try Song / Metronome here).'
+                   : Cap ? 'Microphone is off for Feel The Beat. Turn it on in your phone\'s Settings, then tap Start again.'
                    : 'Microphone is blocked. Allow mic access for this site in your browser settings, then tap Start again.');
     else toast('Could not start: ' + err.message);
   }
 }
 
+let metroNext = 0;
+function scheduleTick(){ metroTimer = setTimeout(metroTick, Math.max(0, metroNext - performance.now())); }
+function metroTick(){
+  const b = beatCount % state.bar;
+  pulse(1, b === 0);   // stronger buzz on the first beat of the bar
+  lightDot(b);
+  beatCount++;
+  const now = performance.now();
+  metroNext += 60000/state.tempo;
+  if(metroNext < now - 250) metroNext = now + 60000/state.tempo;   // came back from the background: don't rush to catch up
+  scheduleTick();
+}
 function startMetro(){
-  let next = performance.now(); beatCount = 0;
+  beatCount = 0; metroNext = performance.now();
   $('bpm').textContent = state.tempo;
-  const tick = () => {
-    pulse(false, beatCount % 4 === 0);   // stronger buzz on the downbeat
-    beatCount++;
-    next += 60000/state.tempo;
-    metroTimer = setTimeout(tick, Math.max(0, next - performance.now()));
-  };
-  tick();
+  metroTick();
 }
 
 function stop(){
@@ -378,30 +620,48 @@ function stop(){
   if(micStream){ micStream.getTracks().forEach(t=>t.stop()); micStream = null; }
   if(micSrc){ micSrc.disconnect(); micSrc = null; }
   if(audioEl && !audioEl.paused) audioEl.pause();
-  if(canVibrate) navigator.vibrate(0);
-  try{ wakeLock?.release(); }catch(e){} wakeLock = null;
-  history = []; intervals = []; lastBeat = 0;
+  try{ if(navigator.audioSession) navigator.audioSession.type = 'auto'; }catch(e){}
+  haptic.stop();
+  keepAwake(false);
+  history = []; intervals = []; lastBeat = 0; quiet = false;
+  $('glow').style.opacity = 0; lightDot(-1);
   state.running = false; setRunning(false);
+}
+
+// Keep the screen on while it's running
+async function keepAwake(on){
+  if(Cap) return native('KeepAwake', on ? 'keepAwake' : 'allowSleep');
+  try{ if(on) wakeLock = await navigator.wakeLock?.request('screen'); else { wakeLock?.release(); wakeLock = null; } }catch(e){}
 }
 
 let toastT;
 function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),5000); }
+function runningHint(){
+  if(!fullBuzz) return 'Watch the pulse on every beat';
+  if(state.mode!=='metro' && state.feel==='bass') return 'Feel the bass';
+  return 'Feel the buzz on every beat';
+}
 function setRunning(on){
   $('go').textContent = on ? 'Stop' : 'Start';
   $('go').classList.toggle('stop', on);
   $('status').classList.toggle('live', on);
   $('statusTxt').textContent = on ? 'Live' : 'Ready';
-  if(on) $('hint').textContent = canVibrate ? 'Feel the buzz on every beat' : 'Taps + flashes on every beat';
-  else $('hint').textContent = hints[state.mode];
+  $('hint').textContent = on ? runningHint() : hints[state.mode];
 }
 
-// Offline support + installable app (only on the real site, not inside preview frames)
-if('serviceWorker' in navigator && location.protocol==='https:' && window.self===window.top){
+// ---------- Start up ----------
+restore();
+if(device==='ios-web'){ $('noticeT').textContent = 'iPhone browsers can\'t vibrate to music.'; $('notice').classList.remove('hide'); }
+else if(device==='none'){ $('noticeT').textContent = 'No vibration here. Open it on your phone to feel it.'; $('notice').classList.remove('hide'); }
+try{ if(!localStorage.getItem('ftb-seen') && isPhone) openHelp(); }catch(e){}
+
+// Offline support + installable app (only on the real site: not inside preview frames or the native app)
+if('serviceWorker' in navigator && location.protocol==='https:' && window.self===window.top && !Cap){
   window.addEventListener('load', ()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 }
 
-document.addEventListener('visibilitychange', async ()=>{
-  if(document.visibilityState==='visible' && state.running){ try{ wakeLock = await navigator.wakeLock?.request('screen'); }catch(e){} }
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState==='visible' && state.running) keepAwake(true);
 });
 </script>
 </body>
